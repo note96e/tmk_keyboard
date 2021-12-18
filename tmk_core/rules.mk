@@ -53,7 +53,9 @@
 #
 # To rebuild project do "make clean" then "make all".
 #----------------------------------------------------------------------------
-
+# For WSL2 enviroment (using dfu-programmer.exe).
+# make wdfu / wdfu-ee
+#----------------------------------------------------------------------------
 
 # Output format. (can be srec, ihex, binary)
 FORMAT = ihex
@@ -439,9 +441,30 @@ endif
 	dfu-programmer $(MCU) flash $(TARGET).hex
 	dfu-programmer $(MCU) reset || true # ignore exit code
 	
+wdfu: $(TARGET).hex
+	@echo -n dfu-programmer.exe: waiting
+	@until dfu-programmer.exe $(MCU) get bootloader-version > /dev/null 2>&1; do \
+		echo  -n "."; \
+		sleep 1; \
+	done
+	@echo
+
+ifeq ($(shell dfu-programmer --version 2>&1 | grep -q 0.7; echo $$?),0)
+	dfu-programmer.exe $(MCU) erase --force
+else
+	dfu-programmer.exe $(MCU) erase
+endif
+
+	dfu-programmer.exe $(MCU) flash $(TARGET).hex
+	dfu-programmer.exe $(MCU) reset || true # ignore exit code
+	
 dfu-start:
 	dfu-programmer $(MCU) reset
 	dfu-programmer $(MCU) start
+
+wdfu-start:
+	dfu-programmer.exe $(MCU) reset
+	dfu-programmer.exe $(MCU) start
 
 flip-ee: $(TARGET).hex $(TARGET).eep
 	$(COPY) $(TARGET).eep $(TARGET)eep.hex
@@ -454,6 +477,9 @@ dfu-ee: $(TARGET).hex $(TARGET).eep
 	dfu-programmer $(MCU) flash --eeprom $(TARGET).eep
 	dfu-programmer $(MCU) reset
 
+wdfu-ee: $(TARGET).hex $(TARGET).eep
+	dfu-programmer.exe $(MCU) flash --eeprom $(TARGET).eep
+	dfu-programmer.exe $(MCU) reset
 
 # Generate avr-gdb config/init file which does the following:
 #     define the reset signal, load the target file, connect to target, and set 
@@ -627,4 +653,4 @@ $(shell mkdir $(OBJDIR) 2>/dev/null)
 .PHONY : all begin finish end sizebefore sizeafter gccversion \
 build elf hex eep lss sym coff extcoff \
 clean clean_list debug gdb-config show_path \
-program teensy dfu flip dfu-ee flip-ee dfu-start
+program teensy dfu wdfu flip dfu-ee wdfu-ee flip-ee dfu-start wdfu-start

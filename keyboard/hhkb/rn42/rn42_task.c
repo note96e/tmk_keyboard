@@ -17,7 +17,11 @@
 #include "battery.h"
 
 static bool config_mode = false;
+#ifdef RN42_DEFAULT_FORCE_USB
+static bool force_usb = true;
+#else
 static bool force_usb = false;
+#endif
 
 static void status_led(bool on)
 {
@@ -132,7 +136,20 @@ void rn42_task(void)
     }
 }
 
+void rn42_force_usb(bool flag)
+{
+    if (flag) {
+        print("USB mode\n");
+    } else {
+        print("Auto mode\n");
+    }
+    force_usb = flag;
+}
 
+void rn42_force_usb_toggle(void)
+{
+    rn42_force_usb(!force_usb);
+}
 
 /******************************************************************************
  * Command
@@ -347,13 +364,7 @@ bool command_extra(uint8_t code)
             return true;
         case KC_U:
             if (config_mode) return false;
-            if (force_usb) {
-                print("Auto mode\n");
-                force_usb = false;
-            } else {
-                print("USB mode\n");
-                force_usb = true;
-            }
+            rn42_force_usb(!force_usb);
             return true;
         case KC_DELETE:
             /* RN-42 Command mode */

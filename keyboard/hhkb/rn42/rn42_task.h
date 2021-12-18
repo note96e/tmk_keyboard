@@ -10,5 +10,7 @@ bool rn42_nkro_last;
 
 void rn42_task_init(void);
 void rn42_task(void);
+void rn42_force_usb(bool flag);
+void rn42_force_usb_toggle(void);
 
 #endif

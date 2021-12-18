@@ -1,0 +1,9 @@
+TARGET ?= hhkb_rn42
+CONFIG_H ?= config_rn42.h
+RN42_ENABLE ?= yes
+MOUSEKEY_ENABLE ?= no    # Mouse keys
+CONSOLE_ENABLE ?= yes    # Console for debug
+COMMAND_ENABLE ?= yes    # Commands for debug and configuration
+NKRO_ENABLE ?= no        # USB Nkey Rollover
+KEYMAP = n
+include Makefile
